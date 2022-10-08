@@ -25,14 +25,12 @@ anno_save = savepath1 + 'annotations/'
 
 classes_names1 = ['person']
 classes_names2 = ['car']
-# classes_names3 = ['stop sign']
+classes_names3 = ['stop sign']
 
-
-# classes_names = ['person', 'bicycle', 'car', 'motorcycle', 'bus', 'train', 'traffic light', 'fire hydrant', 'stop sign']
 datasets_list = ['train2017']
 
 
-# 生成保存路径
+# 生成保存路径e
 def mkr(path):
     if os.path.exists(path):
         shutil.rmtree(path)
