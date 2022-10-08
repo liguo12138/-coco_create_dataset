@@ -14,6 +14,7 @@ dataDir = 'F:/dataset/COCO'
 # 用于保存新生成的数据的路径
 savepath1 = "F:/dataset/COCO//coco_person/"
 savepath2 = "F:/dataset/COCO//coco_car/"
+savepath3 = "F:/dataset/COCO/coco_stop_sign"
 # 最后生产的json文件的保存路径
 anno_save = savepath1 + 'annotations/'
 '''
@@ -25,6 +26,7 @@ anno_save = savepath1 + 'annotations/'
 classes_names1 = ['person']
 classes_names2 = ['car']
 # classes_names3 = ['stop sign']
+
 
 # classes_names = ['person', 'bicycle', 'car', 'motorcycle', 'bus', 'train', 'traffic light', 'fire hydrant', 'stop sign']
 datasets_list = ['train2017']
