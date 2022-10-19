@@ -21,6 +21,27 @@ import random
 warnings.filterwarnings(action='ignore')
 
 
+
+def object_area(img): #该函数统计图像非零元素的占比,也就是object的面积比例
+    pictue_size = img.shape
+    picture_height = pictue_size[0]
+    picture_width = pictue_size[1]
+    i = 0
+    # up = -1
+    # down = -1
+    # left = -1
+    # right = -1
+
+    for a in range(picture_height):
+        for b in range(picture_width):
+            if img[a, b].all() > 0:#三通道第a行，第b列的像素值求和？
+                # if up == -1:
+                #     up = a
+                i = i + 1
+    rate = i / (picture_height * picture_width)
+    return rate
+
+'''
 random_h=random.randint(30,100)
 random_w=random.randint(40,100)
 random_sizeh=random.randint(80,120)
@@ -29,14 +50,15 @@ size=(random_sizew,random_sizeh)
 
 print((random_h,random_w))
 print(size)
+'''
 
 
-imgBuilding=np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\img\000000000049.jpg"))#将jpg图片转化为array数组的形式
+
+
+front_img = np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\img\000000000036.jpg").resize(size))
+front_img_mask = np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\mask\000000000036.jpg").resize(size))#这里的mask也是三通道的mask
+imgBuilding = np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\img\000000000049.jpg"))#将jpg图片转化为array数组的形式
 imgBuildingMask=np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\mask\000000000049.jpg"))
-imgBill=np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\img\000000000036.jpg").resize(size))
-imgBillMask=np.array(Image.open(r"C:\Users\LG\Desktop\coco_test\mask\000000000036.jpg").resize(size))#这里的mask也是三通道的mask
-
-#imgBill=imgBill[0:imgBill.shape[0]-1]#将图像的高减小了1
 
 plt.figure(figsize=(10,8))
 plt.subplot(2,2,1)

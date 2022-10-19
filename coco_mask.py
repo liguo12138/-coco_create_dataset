@@ -42,10 +42,12 @@ def mkr(path):
 def mask_generator(coco, width, height, anns_list):
     mask_pic = np.zeros((height, width))
     # 生成mask - 此处生成的是4通道的mask图,如果使用要改成三通道,可以将下面的注释解除,或者在使用图片时搜相关的程序改为三通道
+
     for single in anns_list:
         mask_single = coco.annToMask(single)
         mask_pic += mask_single
     # 转化为255
+
     for row in range(height):
         for col in range(width):
             if (mask_pic[row][col] > 0):
