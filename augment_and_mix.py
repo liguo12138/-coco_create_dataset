@@ -34,14 +34,14 @@ def normalize(image):
     return image
 
 
-def apply_op(image, op, severity):
-    image = np.clip(image * 255., 0, 255).astype(np.uint8)
+def apply_op(image, op, severity,target=False):
+    image = np.clip(image, 0, 255).astype(np.uint8)#将0-1的图片 放大到0-255
     pil_img = Image.fromarray(image)  # Convert to PIL.Image
-    pil_img = op(pil_img, severity)
-    return np.asarray(pil_img) / 255.
+    pil_img = op(pil_img, severity, target)
+    return np.asarray(pil_img)
 
 
-def augment_and_mix(image, severity=3, width=3, depth=-1, alpha=1.):  # 在这里执行augmix
+def augment_and_mix(image, severity=1, width=3, depth=-1, alpha=1.):  # 在这里执行augmix
     #这里的augmix对于篡改图片可能不适用，考虑用先后的操作将其串联起来而不是用凸组合的方式
 
     """Perform AugMix augmentations and compute mixture.
@@ -85,15 +85,14 @@ def augment_and_mix(image, severity=3, width=3, depth=-1, alpha=1.):  # 在这�
 
 
 
-
-def augment_and_list(image, severity=1, count=5):#
+def augment_and_list(image, severity=2, count=5,target=False):#
 
     #mix = np.zeros_like(image)
     for _ in range(count):  #
         image_aug = image#.copy()
-        op = np.random.choice(augmentations.augmentations)  # op表示选择的处理方式，这里是等概率的，如果加入mirror以及翻折可以设置一下概率
+        op = np.random.choice(augmentations.augmentations_all)  # op表示选择的处理方式，这里是等概率的，如果加入mirror以及翻折可以设置一下概率
         print(op)
-        image_aug = apply_op(image_aug, op, severity)
+        image_aug = apply_op(image_aug, op, severity, target)
         #mix = normalize(image_aug)
         image = image_aug#.copy()
     return image
@@ -102,20 +101,20 @@ def augment_and_list(image, severity=1, count=5):#
 """
 if __name__ == '__main__':
     img = Image.open(r'C:\Users\LG\Desktop\\test\\adverse\\f10_1_1.jpg')
-    img_mask = Image.open(r'F:\harm_dataset\HFlickr\masks\f10_1.png')
+    img_mask = Image.open(r'F:\harm_dataset\HFlickr\masks\f10_1.png')#.convert('1')
     img.show()
     img = np.array(img).astype(np.float64)
 
-    img_mask = np.array(img_mask).astype(np.float64)
+    img_mask = np.array(img_mask).astype(np.float64)#这里的图片是0和255形式，8位的图
     # im1 = convert_top_bottom(img)
     # im1.show()
 
-    np.random.seed(0)#随机种子，保证masks和img有相同的处理方式
-    im2 = augment_and_list(img)
-    im2=Image.fromarray(np.uint8(im2*255.))
+    np.random.seed(10)#随机种子，保证masks和img有相同的处理方式
+    im2 = augment_and_list(img,target=None)#[0,255]->[0,255]
+    im2=Image.fromarray(np.uint8(im2))
     im2.show()
 
-    np.random.seed(0)
-    im3 = augment_and_list(img_mask)
-    im3=Image.fromarray(np.uint8(im3*255.))
+    np.random.seed(10)
+    im3 = augment_and_list(img_mask,target=True)
+    im3=Image.fromarray(np.uint8(im3))
     im3.show()

@@ -59,8 +59,11 @@ random.uniform 功能：从一个均匀分布[low,high)中随机采样，注意�
 """
 
 
-def autocontrast(pil_img, _):
-    return ImageOps.autocontrast(pil_img)
+def autocontrast(pil_img, _, target=False):
+    if not target:
+        return ImageOps.autocontrast(pil_img)
+    else:
+        return pil_img
 
 
 """
@@ -70,18 +73,23 @@ autocontrast是计算输入图像的直方图，去除直方图中最暗和最�
 """
 
 
-def equalize(pil_img, _):
-    return ImageOps.equalize(pil_img)
-
+def equalize(pil_img, _, target=False):
+    if not target:
+        return ImageOps.equalize(pil_img)
+    else:
+        return pil_img
 
 """
 均衡图像的直方图。该函数使用一个非线性映射到输入图像，为了产生灰色值均匀分布的输出图像。
 """
 
 
-def posterize(pil_img, level):
-    level = int_parameter(sample_level(level), 4)
-    return ImageOps.posterize(pil_img, 4 - level)
+def posterize(pil_img, level, target=False):
+    if not target:
+        level = int_parameter(sample_level(level), 4)
+        return ImageOps.posterize(pil_img, 4 - level)
+    else:
+        return pil_img
 
 
 """
@@ -89,35 +97,46 @@ def posterize(pil_img, level):
 """
 
 
-def rotate(pil_img, level):
+def rotate(pil_img, level, target=False):
     degrees = int_parameter(sample_level(level), 30)
     if np.random.uniform() > 0.5:
         degrees = -degrees
-    return pil_img.rotate(degrees, resample=Image.BILINEAR)  # 双线性插值的方式
+        if not target:
+            return pil_img.rotate(degrees, resample=Image.BILINEAR)  # 双线性插值的方式
+        else:
+            return pil_img.rotate(degrees, resample=Image.NEAREST)
 
 
-def solarize(pil_img, level):  # 在指定的阈值范围内，反转所有的像素点，即原来的值为x，新的像素点的值为255-x。
-    level = int_parameter(sample_level(level), 256)
-    return ImageOps.solarize(pil_img, 256 - level)  # 在256-level之上的像素值都需要进行像素值的反转
+def solarize(pil_img, level, target=False):  # 在指定的阈值范围内，反转所有的像素点，即原来的值为x，新的像素点的值为255-x。
+    if not target:
+        level = int_parameter(sample_level(level), 256)
+        return ImageOps.solarize(pil_img, 256 - level) # 在256-level之上的像素值都需要进行像素值的反转
+    else:
+        return pil_img
 
+def shear_x(pil_img, level, target=False):
 
-def shear_x(pil_img, level):
     level = float_parameter(sample_level(level), 0.3)
     if np.random.uniform() > 0.5:
         level = -level
-    return pil_img.transform((pil_img.width, pil_img.height),
-                             Image.AFFINE, (1, level, 0, 0, 1, 0),
-                             resample=Image.BILINEAR)  # (x , y)——>(x+levle*y , y)
-
+    if not target:
+        return pil_img.transform((pil_img.width, pil_img.height), Image.AFFINE, (1, level, 0, 0, 1, 0), resample=Image.BILINEAR)  # (x , y)——>(x+levle*y , y)
+    else:
+        return pil_img.transform((pil_img.width, pil_img.height), Image.AFFINE, (1, level, 0, 0, 1, 0), resample=Image.NEAREST)
 
 def shear_y(pil_img, level, target=False):
     level = float_parameter(sample_level(level), 0.3)
     if np.random.uniform() > 0.5:  # 都有类似的这种操作，当随机值选的太大，就反向
         level = -level
-    return pil_img.transform((pil_img.width, pil_img.height),
+
+    if not target:
+        return pil_img.transform((pil_img.width, pil_img.height),
                              Image.AFFINE, (1, 0, 0, level, 1, 0),  # AFFINE（仿射变换）这里（x，y）——>(x,level*x+y)
                              resample=Image.BILINEAR)
-
+    else:
+        return pil_img.transform((pil_img.width, pil_img.height),
+                             Image.AFFINE, (1, 0, 0, level, 1, 0),  # AFFINE（仿射变换）这里（x，y）——>(x,level*x+y)
+                             resample=Image.NEAREST)
 
 """
 (pil_img.width, pil_img.height)指定图像经过仿射变换后和原来的图像是一致的大小
@@ -131,10 +150,14 @@ def translate_x(pil_img, level, target=False):  # 水平平移操作
     level = int_parameter(sample_level(level), pil_img.width / 3)  # 对水平平移的最高限度进行一定的限制
     if np.random.random() > 0.5:
         level = -level
-    return pil_img.transform((pil_img.width, pil_img.height),
+    if not target:
+        return pil_img.transform((pil_img.width, pil_img.height),
                              Image.AFFINE, (1, 0, level, 0, 1, 0),  # (x,y)——>(x+level,y)
                              resample=Image.BILINEAR)
-
+    else:
+        return pil_img.transform((pil_img.width, pil_img.height),
+                             Image.AFFINE, (1, 0, level, 0, 1, 0),  # (x,y)——>(x+level,y)
+                             resample=Image.NEAREST)
 
 def translate_y(pil_img, level, target=False):  # 纵轴上的平移
     level = int_parameter(sample_level(level), pil_img.height / 3)
@@ -146,10 +169,12 @@ def translate_y(pil_img, level, target=False):  # 纵轴上的平移
 
 
 # operation that overlaps with ImageNet-C's test set
-def color(pil_img, level):  # 增强色度
+def color(pil_img, level, target=False):  # 增强色度
     level = float_parameter(sample_level(level), 1.8) + 0.1
-    return ImageEnhance.Color(pil_img).enhance(level)
-
+    if not target:
+        return ImageEnhance.Color(pil_img).enhance(level)
+    else:
+        return pil_img
 
 # python中PIL模块中有一个叫做ImageEnhance的类，该类专门用于图像的增强处理，不仅可以增强（或减弱）图像的亮度、对比度、色度，还可以用于增强图像的锐度。
 
@@ -170,63 +195,77 @@ def brightness(pil_img, level, target=False):  # 增强亮度
     else:
         return pil_img
 
-
 # operation that overlaps with ImageNet-C's test set
 def sharpness(pil_img, level,  target=False):  # 锐度
     level = float_parameter(sample_level(level), 1.8) + 0.1
-    return ImageEnhance.Sharpness(pil_img).enhance(level)
+    if not target:
+        return ImageEnhance.Sharpness(pil_img).enhance(level)
+    else:
+        return pil_img
 
-
-def zoom_x(pil_img, level):
+def zoom_x(pil_img, level, target=False):
     level = float_parameter(sample_level(level), 6.0)
     rate = 1.0 / level
     if np.random.random() > 0.5:
         bias = pil_img.width * (1 - rate)
     else:
         bias = 0
-    return pil_img.transform((pil_img.width, pil_img.height),
+    if not target:
+        return pil_img.transform((pil_img.width, pil_img.height),
                              Image.AFFINE, (rate, 0, bias, 0, 1, 0),  # （x,y）——>(rate*x+bias,y)
                              resample=Image.BILINEAR)
+    else:
+        return pil_img.transform((pil_img.width, pil_img.height),
+                             Image.AFFINE, (rate, 0, bias, 0, 1, 0),  # （x,y）——>(rate*x+bias,y)
+                             resample=Image.NEAREST)
 
 
-def zoom_y(pil_img, level):
+def zoom_y(pil_img, level, target=False):
     level = float_parameter(sample_level(level), 6.0)
     rate = 1.0 / level
     if np.random.random() > 0.5:
         bias = pil_img.height * (1 - rate)
     else:
         bias = 0
-    return pil_img.transform((pil_img.width, pil_img.height),
+    if not target:
+        return pil_img.transform((pil_img.width, pil_img.height),
                              Image.AFFINE, (1, 0, 0, 0, rate, bias),  # （x,y）——>(x,rate*y+bias)
                              resample=Image.BILINEAR)#mask的插值应该将插值的方式改成nearest
+    else:
+        return pil_img.transform((pil_img.width, pil_img.height),
+                                 Image.AFFINE, (1, 0, 0, 0, rate, bias),  # （x,y）——>(x,rate*y+bias)
+                                 resample=Image.NEAREST)  # mask的插值应该将插值的方式改成nearest
 
-
-def convert_top_bottom(pil_img,a):#上下翻折
+def convert_top_bottom(pil_img, _, target=False):#上下翻折
 
     #level = float_parameter(sample_level(level), 1.8)  # level的值应该更低
     return pil_img.transpose(Image.FLIP_TOP_BOTTOM)
 
-def mirror(pil_img,a): #镜像
+def mirror(pil_img, _, target=False): #镜像
     return pil_img.transpose(Image.FLIP_LEFT_RIGHT)
+
+"""
+
+噪声腐败类的增广？
+def Noise(pil_img, level):
+
+"""
+
+
 
 
 
 #
-# augmentations = [
-#     rotate, shear_x, shear_y,
-#     translate_x, translate_y, zoom_x, zoom_y
-# ]
+augmentations = [
+    rotate, shear_x, shear_y,
+    translate_x, translate_y, zoom_x, zoom_y, mirror
+]
 
 #
 # augmentations = [
 #     autocontrast, equalize, posterize, rotate, solarize, shear_x, shear_y,
-#     translate_x, translate_y, convert_top_bottom,mirror
+#     translate_x, translate_y, convert_top_bottom, mirror
 # ]
-
-augmentations = [
-    autocontrast, equalize, posterize, rotate, solarize, shear_x, shear_y,
-    translate_x, translate_y, convert_top_bottom,mirror
-]
 
 augmentations_all = [
     autocontrast, equalize, posterize, rotate, solarize, shear_x, shear_y,
